@@ -28,4 +28,4 @@ See attached diagram: `architecture-diagram.png`
 
 ---
 
-Let me know if you'd like this formatted for documentation, presentation, or deployment notes.
+
