@@ -1,0 +1,110 @@
+Absolutely! Here's an updated and detailed **step-by-step guide** to manually create a custom VPC with public and private subnets in AWS:
+
+---
+
+## 🧱 What You Will Build
+
+A secure AWS network architecture with:
+- A custom VPC
+- One public subnet (internet-facing)
+- One private subnet (internal-only)
+- EC2 instances in each subnet
+- Internet Gateway and route tables
+- Security groups for controlled SSH access
+
+---
+
+## 🛠 Step-by-Step Process
+
+### 1️⃣ Create a Custom VPC
+- Go to **VPC Dashboard** → **Create VPC**
+- Name: `CustomVPC`
+- IPv4 CIDR block: `10.0.0.0/16`
+- Tenancy: Default
+- Click **Create VPC**
+
+---
+
+### 2️⃣ Create Subnets
+#### 🔹 Public Subnet
+- Name: `PublicSubnet`
+- VPC: `CustomVPC`
+- Availability Zone: Choose one (e.g., `ap-south-1a`)
+- CIDR block: `10.0.1.0/24`
+- Click **Create Subnet**
+
+#### 🔹 Private Subnet
+- Name: `PrivateSubnet`
+- VPC: `CustomVPC`
+- Availability Zone: Same or different (e.g., `ap-south-1b`)
+- CIDR block: `10.0.2.0/24`
+- Click **Create Subnet**
+
+---
+
+### 3️⃣ Create and Attach Internet Gateway
+- Go to **Internet Gateways** → **Create Internet Gateway**
+- Name: `CustomIGW`
+- Click **Create**
+- Select the IGW → **Actions** → **Attach to VPC** → Choose `CustomVPC`
+
+---
+
+### 4️⃣ Create Route Tables
+#### 🔹 Public Route Table
+- Go to **Route Tables** → **Create Route Table**
+- Name: `PublicRT`
+- VPC: `CustomVPC`
+- Click **Create**
+- Select `PublicRT` → **Routes** → **Edit Routes**
+  - Destination: `0.0.0.0/0`
+  - Target: `CustomIGW`
+- **Subnet Associations** → Associate with `PublicSubnet`
+
+#### 🔹 Private Route Table
+- Optional: Create a separate route table or use default
+- No route to IGW (no internet access)
+- Associate with `PrivateSubnet`
+
+---
+
+### 5️⃣ Launch EC2 Instances
+#### 🔹 Public EC2
+- Go to **EC2 Dashboard** → **Launch Instance**
+- Name: `PublicEC2`
+- AMI: Amazon Linux 2
+- Instance type: t2.micro
+- Network: `CustomVPC`
+- Subnet: `PublicSubnet`
+- Auto-assign Public IP: **Enable**
+- Key pair: Select or create one
+- Security Group: Allow SSH from your IP only
+- Launch
+
+#### 🔹 Private EC2
+- Repeat steps with:
+  - Name: `PrivateEC2`
+  - Subnet: `PrivateSubnet`
+  - Auto-assign Public IP: **Disable**
+  - Security Group: Allow SSH from `PublicEC2`'s private IP range
+
+---
+
+### 6️⃣ Test Connectivity
+- SSH into `PublicEC2` using your key pair:
+  ```bash
+  ssh -i your-key.pem ec2-user@<PublicEC2-IP>
+  ```
+- From `PublicEC2`, SSH into `PrivateEC2` using its private IP:
+  ```bash
+  ssh ec2-user@<PrivateEC2-Private-IP>
+  ```
+
+---
+
+### 🔐 Security Groups
+- **Public EC2 SG:** Allow SSH (port 22) from your IP only
+- **Private EC2 SG:** Allow SSH (port 22) from `PublicSubnet` CIDR (e.g., `10.0.1.0/24`)
+
+---
+
